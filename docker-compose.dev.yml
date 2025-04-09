@@ -1,0 +1,17 @@
+services:
+  mysql:
+    image: mysql:8.0.41
+    container_name: rbac-nest-mysql
+    restart: always
+
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234567
+      MYSQL_DATABASE: nest_proj
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  mysql_data:

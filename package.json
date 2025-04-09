@@ -21,7 +21,10 @@
     "typeorm": "pnpm exec ts-node --transpile-only ./node_modules/typeorm/cli.js -d src/db.ts",
     "migration:generate": "pnpm typeorm migration:generate",
     "migration:run": "pnpm typeorm migration:run",
-    "migration:revert": "pnpm typeorm migration:revert"
+    "migration:revert": "pnpm typeorm migration:revert",
+    "docker:up": "docker-compose -f docker-compose.dev.yml up -d",
+    "docker:down": "docker-compose -f docker-compose.dev.yml down",
+    "async:wallpapers": "ts-node scripts/import-wallpapers.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -34,6 +37,8 @@
     "@nestjs/typeorm": "^11.0.0",
     "@types/bcrypt": "^5.0.2",
     "bcrypt": "^5.1.1",
+    "@types/ali-oss": "^6.16.11",
+    "ali-oss": "^6.22.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "crypto": "^1.0.1",

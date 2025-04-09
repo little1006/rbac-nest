@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
 import { Permission } from './entities/permission.entity';
+import { Wallpaper } from './wallpaper/entities/wallpaper.entity';
 
 // 加载对应环境的 .env 文件
 config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
@@ -15,8 +16,13 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
+<<<<<<< HEAD
   entities: [User, Role, Permission],
   migrations: ['src/migrations/*.ts'],
+=======
+  entities: [User, Role, Permission, Wallpaper],
+  migrations: ['migrations/*.ts'],
+>>>>>>> feat/wallpaper
   synchronize: false, // 生产环境必须设为 false
   logging: process.env.NODE_ENV === 'development',
 };
