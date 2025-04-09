@@ -11,6 +11,8 @@ import { ResModule } from './res/res.module';
 import { ErrorHandlerModule } from './error-handler/error-handler.module';
 import { CrudModule } from './utils/crud/crud.module';
 import { AuthModule } from './auth/auth.module';
+import { WallpaperModule } from './wallpaper/wallpaper.module';
+
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './guards/jwt/jwt.guard';
@@ -41,6 +43,7 @@ import { JwtStrategy } from './guards/jwt/jwt.guard';
       }),
       inject: [ConfigService],
     }),
+    WallpaperModule,
     UsersModule,
     RolesModule,
     PermissionsModule,
