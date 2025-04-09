@@ -14,9 +14,17 @@ export const ossConfig = {
     secure: true
 };
 
+
 // 创建OSS客户端
 export const ossClient = new OSS(ossConfig);
-
+export async function getAssumeRole(name: string, timeout: number = 3600) {
+    const sts = new OSS.STS({
+        accessKeyId: process.env.OSS_ACCESS_KEY_ID,  // 从环境变量中获取RAM用户的AccessKey ID
+        accessKeySecret: process.env.OSS_ACCESS_KEY_SECRET // 从环境变量中获取RAM用户的AccessKey Secret
+    })
+    const result = await sts.assumeRole(process.env.OSS_STS_ROLE_ARN, '', timeout, name);
+    return result
+}
 // 生成不同尺寸的图片URL
 export function generateImageUrls(ossPath: string, originalWidth: number, originalHeight: number) {
     const baseUrl = `https://${ossConfig.bucket}.${ossConfig.region}.aliyuncs.com/${ossPath}`;

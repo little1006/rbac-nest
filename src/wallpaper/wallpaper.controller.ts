@@ -18,6 +18,11 @@ export class WallpaperController {
     return this.wallpaperService.findAll(pagination, start, end);
   }
 
+  @Get('preview-access-key')
+  async previewAccessKey(): Promise<any> {
+    return this.wallpaperService.getPrevwAccessKey();
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Wallpaper> {
     return this.wallpaperService.findOne(id);
