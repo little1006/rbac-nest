@@ -26,7 +26,7 @@ export class User {
   @Column({ type: 'varchar', length: 64, comment: '密码' })
   password: string;
 
-  @Column({ type: 'varchar', length: 8, comment: '盐 每次更新密码时随机生成' })
+  @Column({ type: 'varchar', length: 32, comment: '盐 每次更新密码时随机生成' })
   salt: string;
 
   @Column({ type: 'varchar', length: 100, comment: '邮箱' })

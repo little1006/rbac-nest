@@ -16,7 +16,7 @@ export const dataSourceOptions: DataSourceOptions = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
   entities: [User, Role, Permission],
-  migrations: ['migrations/*.ts'],
+  migrations: ['src/migrations/*.ts'],
   synchronize: false, // 生产环境必须设为 false
   logging: process.env.NODE_ENV === 'development',
 };

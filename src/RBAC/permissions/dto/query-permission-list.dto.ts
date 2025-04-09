@@ -10,7 +10,7 @@ export enum Status {
   Locked = 'locked',
 }
 
-export class QueryUserListDto {
+export class QueryPermissionListDto {
   /**
    * 当前页码
    */
@@ -49,13 +49,4 @@ export class QueryUserListDto {
   @IsOptional()
   @IsIn(['ASC', 'DESC'], { message: 'sortOrder 必须是 ASC 或 DESC' }) // 限制排序方向
   sortOrder?: 'ASC' | 'DESC' = 'DESC'; // 默认降序
-
-  /**
-   * 用户状态
-   */
-  @IsOptional()
-  @IsIn(Object.values(Status), {
-    message: 'status 必须是 active、inactive 或 locked',
-  })
-  status?: Status;
 }

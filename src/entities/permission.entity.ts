@@ -30,7 +30,7 @@ export class Permission {
   action: string;
 
   @Column({ type: 'bool', comment: '系统角色 不可修改' })
-  isSystem: string;
+  isSystem: boolean;
 
   @ManyToMany(() => Role, (role) => role.permissions)
   roles: Promise<Role[]>;

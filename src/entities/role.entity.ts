@@ -22,7 +22,7 @@ export class Role {
   description: string;
 
   @Column({ type: 'bool', comment: '系统角色 不可修改' })
-  isSystem: string;
+  isSystem: boolean;
 
   @ManyToMany(() => User, (user) => user.roles)
   users: Promise<User[]>;
