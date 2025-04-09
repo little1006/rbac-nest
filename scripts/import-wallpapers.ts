@@ -3,7 +3,7 @@ import { AppModule } from '../src/app.module';
 import { WallpaperService } from '../src/wallpaper/wallpaper.service';
 import * as fs from 'fs';
 import * as path from 'path';
-import { uploadImageToOSS, generateImageUrls } from './oss-config';
+import { uploadImageToOSS, generateImageUrls } from '../src/config/oss-config';
 
 export async function importWallpapers() {
     try {

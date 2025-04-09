@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Get, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wallpaper } from './entities/wallpaper.entity';
 import { PaginationDto } from '../utils/crud/dto/pagination.dto';
+import { getAssumeRole } from 'src/config/oss-config';
 @Injectable()
 export class WallpaperService {
   constructor(
@@ -69,5 +70,8 @@ export class WallpaperService {
     if (result.affected === 0) {
       throw new NotFoundException(`Wallpaper with ID ${id} not found`);
     }
+  }
+  async getPrevwAccessKey() {
+    return await getAssumeRole('wallpaper', 30 * 24 * 60 * 60 * 1000)
   }
 }
