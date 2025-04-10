@@ -12,6 +12,8 @@ import { ResService } from 'src/res/res.service';
 import { BindRoleDto } from './dto/bind-role.dto';
 import { RemoveRoleDto } from './dto/remove-role.dto';
 import { RolesService } from '../roles/roles.service';
+import { plainToInstance } from 'class-transformer';
+import { UserDto } from './dto/expose-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -57,6 +59,17 @@ export class UsersService {
 
   /** 创建用户 */
   async create(createUserDto: CreateUserDto) {
+    // 检查用户名是否已存在
+    const existingUser = await this.userRepository.findOneBy({
+      username: createUserDto.username,
+    });
+    if (existingUser) {
+      throw new BusinessException(
+        `用户名 "${createUserDto.username}" 已存在`,
+        ResService.CODES.BadRequest,
+      );
+    }
+
     // TODO 生成 psw 和 salt
     const [password, salt] = this.genStorePassword(createUserDto.password);
 
@@ -67,7 +80,9 @@ export class UsersService {
       status: EnumUserStatus.ACTIVE,
     });
 
-    return await this.userRepository.save(user);
+    const res = await this.userRepository.save(user);
+
+    return plainToInstance(UserDto, res, { excludeExtraneousValues: true });
   }
 
   /**
@@ -93,15 +108,24 @@ export class UsersService {
       },
     });
 
-    return list;
+    // 使用 plainToInstance 将查询结果转换为 DTO
+    const transformedList = plainToInstance(UserDto, list.list, {
+      excludeExtraneousValues: true, // 排除未标记为 @Expose 的字段
+    });
+
+    return {
+      ...list,
+      list: transformedList,
+    };
   }
 
   /**
    * 查询单个用户
    */
   async findOne(id: string) {
-    const res = await this.userRepository.findOneBy({ id });
-    return res;
+    const user = await this.userRepository.findOneBy({ id });
+    // 转换为不敏感的 UserDto
+    return plainToInstance(UserDto, user, { excludeExtraneousValues: true });
   }
 
   /**
@@ -116,11 +140,12 @@ export class UsersService {
       throw new Error(`用户 ID ${id} 不存在`);
     }
 
-    console.log('updateData', updateData);
-
     // 更新用户信息
     Object.assign(user, updateData);
-    return await this.userRepository.save(user);
+
+    const res = await this.userRepository.save(user);
+
+    return plainToInstance(UserDto, res, { excludeExtraneousValues: true });
   }
 
   async remove(id: string) {
@@ -256,5 +281,32 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  /** 获取用户的所有权限 */
+  async getUserPermissions(userId: string): Promise<string[]> {
+    // 查询用户的角色
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['roles', 'roles.permissions'], // 加载用户的角色及其权限
+    });
+
+    if (!user) {
+      throw new BusinessException('用户不存在', ResService.CODES.BadRequest);
+    }
+
+    // 解析惰性加载的角色和权限
+    const roles = await user.roles; // 解析 roles
+    const permissions = await Promise.all(
+      roles.map(async (role) => await role.permissions), // 解析每个角色的权限
+    );
+
+    // 提取权限名称并去重
+    const permissionNames = permissions
+      .flat()
+      .map((permission) => permission.name);
+
+    // 去重并返回
+    return [...new Set(permissionNames)];
   }
 }

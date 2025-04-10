@@ -8,6 +8,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Role } from './role.entity';
+import { Exclude } from 'class-transformer';
 
 export enum EnumUserStatus {
   ACTIVE = 'active',
@@ -23,6 +24,7 @@ export class User {
   @Column({ type: 'varchar', length: 20, comment: '用户名' })
   username: string;
 
+  @Exclude()
   @Column({ type: 'varchar', length: 64, comment: '密码' })
   password: string;
 

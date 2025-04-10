@@ -51,10 +51,10 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const expires_in = process.env.JWT_EXPIRES_IN || 3600;
+    const expires_in = (Number(process.env.JWT_EXPIRES_IN) || 3600) * 1000;
 
     // 生成访问令牌 (accessToken)
-    const payload = { username: user.username, sub: user.id };
+    const payload = { username: user.username, sub: '', userId: user.id };
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: '1d',
       secret: process.env.JWT_SECRET,

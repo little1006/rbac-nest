@@ -8,6 +8,8 @@ import {
   Delete,
   Query,
   UseGuards,
+  Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -84,15 +86,35 @@ export class UsersController {
 
   /** 获取当前登陆用户 */
   @Get('/getCurrentUser')
-  async getCurrentUser() {
-    // TODO 需要解析jwt
-    return '';
+  async getCurrentUser(@Req() req: any) {
+    // 从请求对象中获取用户信息（由 JwtAuthGuard 注入）
+    const userId = req.user?.userId; // 假设 JWT 中的 payload 包含 userId 字段
+    console.log(req.user);
+    if (!userId) {
+      throw new BadRequestException('非法的token');
+    }
+
+    // 根据 userId 查询用户信息
+    const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new BadRequestException('用户不存在');
+    }
+
+    return this.res.success(user);
   }
 
   /** 获取当前登陆用户所有权限 */
   @Get('/permissions')
-  getCurrentUserPermissions() {
-    // TODO
-    return '';
+  async getCurrentUserPermissions(@Req() req: any) {
+    // 从请求对象中获取用户信息（由 JwtAuthGuard 注入）
+    const userId = req.user?.userId; // 假设 JWT 中的 payload 包含 userId 字段
+    if (!userId) {
+      throw new BadRequestException('非法的token');
+    }
+
+    // 调用服务层获取用户权限
+    const permissions = await this.usersService.getUserPermissions(userId);
+
+    return this.res.success(permissions);
   }
 }
