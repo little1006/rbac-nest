@@ -7,6 +7,9 @@ import {
   PaginatedResponse,
 } from './interfaces/wallpaper-provider.interface';
 import { Wallpaper360Provider } from './providers/wallpaper-360.provider';
+import { UnsplashProvider } from './providers/unsplash.provider';
+import { PexelsProvider } from './providers/pexels.provider';
+import { BingProvider } from './providers/bing.provider';
 import { WallpaperProvider } from './dto/query-wallpaper.dto';
 
 @Injectable()
@@ -14,9 +17,17 @@ export class WallpaperService {
   private readonly logger = new Logger(WallpaperService.name);
   private readonly providers: Map<string, IWallpaperProvider> = new Map();
 
-  constructor(private readonly wallpaper360Provider: Wallpaper360Provider) {
+  constructor(
+    private readonly wallpaper360Provider: Wallpaper360Provider,
+    private readonly unsplashProvider: UnsplashProvider,
+    private readonly pexelsProvider: PexelsProvider,
+    private readonly bingProvider: BingProvider,
+  ) {
     // 注册所有壁纸提供者
     this.registerProvider(this.wallpaper360Provider);
+    this.registerProvider(this.unsplashProvider);
+    this.registerProvider(this.pexelsProvider);
+    this.registerProvider(this.bingProvider);
   }
 
   /**

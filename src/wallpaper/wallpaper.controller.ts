@@ -5,7 +5,6 @@ import {
   Post,
   Body,
   Logger,
-  HttpException,
   HttpStatus,
 } from '@nestjs/common';
 import { WallpaperService } from './wallpaper.service';
@@ -314,6 +313,108 @@ export class WallpaperController {
       this.logger.error('Failed to get 360 hot search', error);
       throw new BusinessException(
         '获取360热门搜索失败',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Unsplash壁纸接口 - 获取分类列表
+   */
+  @Get('unsplash/categories')
+  async getUnsplashCategories() {
+    try {
+      const categories = await this.wallpaperService.getAllCategories(
+        'unsplash',
+      );
+      return this.resService.success(categories, '获取Unsplash分类成功');
+    } catch (error) {
+      this.logger.error('Failed to get Unsplash categories', error);
+      throw new BusinessException(
+        '获取Unsplash分类失败',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Unsplash壁纸接口 - 搜索壁纸
+   */
+  @Get('unsplash/search')
+  async searchUnsplashWallpapers(@Query() query: SearchWallpaperDto) {
+    try {
+      const wallpapers = await this.wallpaperService.searchWallpapers(
+        query.kw || 'nature',
+        'unsplash',
+        parseInt(query.start) || 0,
+        parseInt(query.count) || 10,
+      );
+      return this.resService.success(wallpapers, '搜索Unsplash壁纸成功');
+    } catch (error) {
+      this.logger.error('Failed to search Unsplash wallpapers', error);
+      throw new BusinessException(
+        '搜索Unsplash壁纸失败',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Pexels壁纸接口 - 获取分类列表
+   */
+  @Get('pexels/categories')
+  async getPexelsCategories() {
+    try {
+      const categories = await this.wallpaperService.getAllCategories('pexels');
+      return this.resService.success(categories, '获取Pexels分类成功');
+    } catch (error) {
+      this.logger.error('Failed to get Pexels categories', error);
+      throw new BusinessException(
+        '获取Pexels分类失败',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Pexels壁纸接口 - 搜索壁纸
+   */
+  @Get('pexels/search')
+  async searchPexelsWallpapers(@Query() query: SearchWallpaperDto) {
+    try {
+      const wallpapers = await this.wallpaperService.searchWallpapers(
+        query.kw || 'nature',
+        'pexels',
+        parseInt(query.start) || 0,
+        parseInt(query.count) || 10,
+      );
+      return this.resService.success(wallpapers, '搜索Pexels壁纸成功');
+    } catch (error) {
+      this.logger.error('Failed to search Pexels wallpapers', error);
+      throw new BusinessException(
+        '搜索Pexels壁纸失败',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Bing壁纸接口 - 获取壁纸列表
+   */
+  @Get('bing/list')
+  async getBingWallpapers(@Query() query: QueryWallpaperListDto) {
+    try {
+      const wallpapers = await this.wallpaperService.getWallpapersByCategory(
+        'bing',
+        'daily',
+        parseInt(query.start) || 0,
+        parseInt(query.count) || 30,
+      );
+      return this.resService.success(wallpapers, '获取Bing壁纸成功');
+    } catch (error) {
+      this.logger.error('Failed to get Bing wallpapers', error);
+      throw new BusinessException(
+        '获取Bing壁纸失败',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
