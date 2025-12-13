@@ -1,4 +1,4 @@
-export const HOST = 'https://quantumdash.link';
+export const HOST = 'https://oss.quantumdash.link';
 export const isProd = process.env.NODE_ENV !== 'development';
 //三方天气接口,获取24小时的天气
 export const weatherUrl =
