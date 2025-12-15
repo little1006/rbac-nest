@@ -14,6 +14,7 @@ export class BingProvider implements IWallpaperProvider {
   private readonly logger = new Logger(BingProvider.name);
   private readonly sourceUrl =
     'https://raw.onmicrosoft.cn/Bing-Wallpaper-Action/main/README.md';
+  private readonly CACHE_DURATION = 30 * 60 * 1000; // 30分钟缓存时间
   private cachedWallpapers: WallpaperInfo[] = [];
   private lastFetchTime = 0;
 
@@ -35,22 +36,6 @@ export class BingProvider implements IWallpaperProvider {
     ];
   }
 
-  /**
-   * 获取今天早上6点的时间戳
-   */
-  private getTodaySixAM(): number {
-    const now = new Date();
-    const sixAM = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      12,
-      0,
-      0,
-      0,
-    );
-    return sixAM.getTime();
-  }
 
   /**
    * 从URL中提取语言代码
@@ -64,28 +49,26 @@ export class BingProvider implements IWallpaperProvider {
 
   /**
    * 判断是否需要刷新缓存
-   * 规则：如果当前时间已过今天6点，且上次请求时间在今天6点之前，则需要刷新
+   * 规则：距离上次刷新超过30分钟则需要刷新
    */
   private shouldRefreshCache(): boolean {
     const now = Date.now();
-    const todaySixAM = this.getTodaySixAM();
 
     // 如果没有缓存，需要请求
     if (this.cachedWallpapers.length === 0) {
       return true;
     }
 
-    // 如果当前时间在今天6点之前，使用缓存
-    if (now < todaySixAM) {
-      return false;
-    }
-
-    // 如果当前时间在今天6点之后，且上次请求在今天6点之前，需要刷新
-    if (this.lastFetchTime < todaySixAM) {
+    // 如果距离上次请求超过30分钟，需要刷新
+    const timeSinceLastFetch = now - this.lastFetchTime;
+    if (timeSinceLastFetch > this.CACHE_DURATION) {
+      this.logger.log(
+        `Cache expired (${Math.floor(timeSinceLastFetch / 60000)} minutes since last fetch)`,
+      );
       return true;
     }
 
-    // 其他情况使用缓存
+    // 使用缓存
     return false;
   }
 
@@ -251,5 +234,29 @@ export class BingProvider implements IWallpaperProvider {
   async getHotSearchKeywords(): Promise<HotSearchItem[]> {
     // Bing壁纸没有搜索功能,返回空数组
     return [];
+  }
+
+  /**
+   * 强制刷新缓存（用于调试或手动更新）
+   */
+  async refreshCache(): Promise<void> {
+    this.logger.log('Force refreshing Bing wallpapers cache...');
+    this.lastFetchTime = 0; // 重置最后请求时间
+    await this.fetchWallpapers();
+  }
+
+  /**
+   * 获取缓存信息（用于调试）
+   */
+  getCacheInfo(): {
+    cached: number;
+    lastFetch: Date | null;
+    shouldRefresh: boolean;
+  } {
+    return {
+      cached: this.cachedWallpapers.length,
+      lastFetch: this.lastFetchTime > 0 ? new Date(this.lastFetchTime) : null,
+      shouldRefresh: this.shouldRefreshCache(),
+    };
   }
 }
