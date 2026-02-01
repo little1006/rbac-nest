@@ -99,4 +99,11 @@ export class UsersController {
   ) {
     return this.res.success(permissions);
   }
+
+  /** 获取用户统计信息 */
+  @Get('/statistics')
+  async getStatistics() {
+    const res = await this.usersService.getStatistics();
+    return this.res.success(res);
+  }
 }

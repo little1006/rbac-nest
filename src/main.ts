@@ -19,6 +19,8 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',
       'http://127.0.0.1:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3001',
       'chrome-extension://*', // 允许所有 Chrome Extension
       /^chrome-extension:\/\/.+$/, // 使用正则表达式匹配 Chrome Extension
     ],

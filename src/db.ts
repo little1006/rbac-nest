@@ -9,6 +9,7 @@ import { VerifyCodeLog } from './entities/verify_code_log.entity';
 import { OAuth2GoogleEntity } from './entities/oa_google.entity';
 import { OnceContextEntity } from './entities/ut_once_context';
 import { UserOss } from './entities/user_oss.entity';
+import { AnalyticsEvent } from './entities/analytics-event.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 
@@ -34,6 +35,7 @@ export const dataSourceOptions: DataSourceOptions = {
     OAuth2GoogleEntity,
     OnceContextEntity,
     UserOss,
+    AnalyticsEvent,
   ],
   migrations: ['migrations/*.ts'],
   synchronize: false, // 生产环境必须设为 false
@@ -60,6 +62,7 @@ export function getTestingModule() {
       OAuth2GoogleEntity,
       OnceContextEntity,
       UserOss,
+      AnalyticsEvent,
     ]),
   ];
 }

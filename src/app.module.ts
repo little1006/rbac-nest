@@ -18,6 +18,8 @@ import { WallpaperModule } from './wallpaper/wallpaper.module';
 import { AuthModule } from './RBAC/auth/auth.module';
 import { UserModule } from './user/user.module';
 import { JsonUploadModule } from './json-upload/json-upload.module';
+import { AdminModule } from './admin/admin.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -53,6 +55,8 @@ import { JsonUploadModule } from './json-upload/json-upload.module';
     WallpaperModule,
     GoogleOauthModule,
     OnceContextModule,
+    AdminModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

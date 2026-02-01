@@ -89,13 +89,32 @@ export class UsersService {
   /**
    * 分页查询
    */
-  async findAll({ search, status, ...pagination }: QueryUserListDto) {
+  async findAll({ search, status, excludeAdmin = true, ...pagination }: QueryUserListDto) {
+    // 获取管理员用户ID列表（用于排除）
+    let excludeAdminIds: string[] = [];
+    if (excludeAdmin) {
+      const adminRoleId = 'b0000000-0000-0000-0000-000000000001';
+      const adminUsers = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoin('user.roles', 'role')
+        .where('role.id = :adminRoleId', { adminRoleId })
+        .select('user.id')
+        .getMany();
+      excludeAdminIds = adminUsers.map(u => u.id);
+    }
+
     const list = await this.crud.paginate({
       repository: this.userRepository,
       pagination,
       alias: 'user',
       filter(qb) {
         qb = qb.where('1=1');
+        
+        // 排除管理员用户
+        if (excludeAdminIds.length > 0) {
+          qb = qb.andWhere('user.id NOT IN (:...excludeAdminIds)', { excludeAdminIds });
+        }
+        
         if (!!status) {
           qb = qb.andWhere('user.status = :status', { status });
         }
@@ -275,13 +294,16 @@ export class UsersService {
     password: string,
   ): Promise<UserDto> | null {
     console.log('ss', username, password);
-    // 查找用户是否存在
+    // 查找用户是否存在 (支持 username 或 email 登录)
     const user = await this.userRepository.findOne({
-      where: { username },
+      where: [
+        { username },
+        { email: username }
+      ],
     });
     if (!user) {
       throw new BusinessException(
-        `用户 ${username} 不存在`,
+        `账户或密码错误`,
         ResService.CODES.BadRequest,
       );
     }
@@ -377,5 +399,124 @@ export class UsersService {
     const res = await this.userRepository.save(user);
 
     return plainToInstance(UserDto, res, { excludeExtraneousValues: true });
+  }
+
+  /** 获取用户统计信息（排除管理员账户） */
+  async getStatistics() {
+    // 获取SuperAdmin角色的ID
+    const adminRoleId = 'b0000000-0000-0000-0000-000000000001';
+    
+    // 获取所有管理员用户ID
+    const adminUserIds = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.roles', 'role')
+      .where('role.id = :adminRoleId', { adminRoleId })
+      .select('user.id')
+      .getMany();
+    
+    const excludeAdminIds = adminUserIds.map(u => u.id);
+    
+    // 构建排除管理员的查询条件
+    const buildExcludeAdminQuery = (qb: any) => {
+      if (excludeAdminIds.length > 0) {
+        qb.andWhere('user.id NOT IN (:...excludeAdminIds)', { excludeAdminIds });
+      }
+      return qb;
+    };
+
+    // 总用户数（不含管理员）
+    let totalUsersQuery = this.userRepository.createQueryBuilder('user');
+    totalUsersQuery = buildExcludeAdminQuery(totalUsersQuery);
+    const totalUsers = await totalUsersQuery.getCount();
+
+    // 活跃用户数（不含管理员）
+    let activeUsersQuery = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.status = :status', { status: EnumUserStatus.ACTIVE });
+    activeUsersQuery = buildExcludeAdminQuery(activeUsersQuery);
+    const activeUsers = await activeUsersQuery.getCount();
+
+    // 未激活用户数
+    let inactiveUsersQuery = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.status = :status', { status: EnumUserStatus.INACTIVE });
+    inactiveUsersQuery = buildExcludeAdminQuery(inactiveUsersQuery);
+    const inactiveUsers = await inactiveUsersQuery.getCount();
+
+    // 锁定用户数
+    let lockedUsersQuery = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.status = :status', { status: EnumUserStatus.LOCKED });
+    lockedUsersQuery = buildExcludeAdminQuery(lockedUsersQuery);
+    const lockedUsers = await lockedUsersQuery.getCount();
+
+    // 今日新增用户（不含管理员）
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let todayUsersQuery = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.createdAt >= :today', { today });
+    todayUsersQuery = buildExcludeAdminQuery(todayUsersQuery);
+    const todayUsers = await todayUsersQuery.getCount();
+
+    // 本周新增用户（不含管理员）
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+    let weekUsersQuery = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.createdAt >= :weekStart', { weekStart });
+    weekUsersQuery = buildExcludeAdminQuery(weekUsersQuery);
+    const weekUsers = await weekUsersQuery.getCount();
+
+    // 本月新增用户（不含管理员）
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    let monthUsersQuery = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.createdAt >= :monthStart', { monthStart });
+    monthUsersQuery = buildExcludeAdminQuery(monthUsersQuery);
+    const monthUsers = await monthUsersQuery.getCount();
+
+    // 最近7天每日注册趋势（不含管理员）
+    let dailyTrendQuery = this.userRepository
+      .createQueryBuilder('user')
+      .select('DATE(user.createdAt)', 'date')
+      .addSelect('COUNT(*)', 'count')
+      .where('user.createdAt >= :startDate', {
+        startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      });
+    if (excludeAdminIds.length > 0) {
+      dailyTrendQuery = dailyTrendQuery.andWhere('user.id NOT IN (:...excludeAdminIds)', { excludeAdminIds });
+    }
+    const dailyTrend = await dailyTrendQuery
+      .groupBy('DATE(user.createdAt)')
+      .orderBy('date', 'ASC')
+      .getRawMany();
+
+    // 最近注册的用户（不含管理员）
+    let recentUsersQuery = this.userRepository
+      .createQueryBuilder('user')
+      .orderBy('user.createdAt', 'DESC')
+      .take(5);
+    if (excludeAdminIds.length > 0) {
+      recentUsersQuery = recentUsersQuery.where('user.id NOT IN (:...excludeAdminIds)', { excludeAdminIds });
+    }
+    const recentUsers = await recentUsersQuery.getMany();
+
+    return {
+      totalUsers,
+      activeUsers,
+      inactiveUsers,
+      lockedUsers,
+      todayUsers,
+      weekUsers,
+      monthUsers,
+      dailyTrend,
+      recentUsers: recentUsers.map((user) =>
+        plainToInstance(UserDto, user, { excludeExtraneousValues: true }),
+      ),
+    };
   }
 }

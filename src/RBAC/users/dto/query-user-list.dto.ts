@@ -1,5 +1,5 @@
-import { IsOptional, IsNumber, Min, IsIn, IsString } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsNumber, Min, IsIn, IsString, IsBoolean } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
 /**
  * 状态
@@ -58,4 +58,13 @@ export class QueryUserListDto {
     message: 'status 必须是 active、inactive 或 locked',
   })
   status?: Status;
+
+  /**
+   * 是否排除管理员用户（具有SuperAdmin角色的用户）
+   * 默认 true - 不显示管理员
+   */
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean({ message: 'excludeAdmin 必须是布尔值' })
+  excludeAdmin?: boolean = true;
 }
