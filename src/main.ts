@@ -23,6 +23,7 @@ async function bootstrap() {
       'http://127.0.0.1:3001',
       'chrome-extension://*', // 允许所有 Chrome Extension
       /^chrome-extension:\/\/.+$/, // 使用正则表达式匹配 Chrome Extension
+      'https://little077-quantum-admin-7cxqk7jbc-jinghaoyuan382-1400s-projects.vercel.app',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
